@@ -1,0 +1,17 @@
+################################################################################
+# .gitignore file
+################################################################################
+
+/.tempChromeProfileForDebug
+/node_modules
+npm-debug.log.**
+npm-debug.log
+.DS_Store
+.history
+.vscode
+.tern
+0.*
+1.*
+2.*
+package-lock.json
+/tokens

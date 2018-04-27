@@ -1,0 +1,118 @@
+{
+    "root": true,
+    "parserOptions": {
+        "ecmaVersion": 5,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "classes": false,
+            "jsx": false,
+            "modules": true,
+            "objectLiteralShorthandMethods": false,
+            "destructuring": false
+        }
+    },
+    "env": {
+        "browser": true,
+        "node": false,
+        "es6": true,
+        "mocha": true
+    },
+    "globals": {
+        "describe": false,
+        "it": false,
+        "define": false,
+        "require": false,
+        "ok": false,
+        "module": false,
+        "expect": false,
+        "test": false,
+        "asyncTest": false,
+        "equal": false,
+        "notEqual": false,
+        "strictEqual": false,
+        "notStrictEqual": false,
+        "start": false,
+        "deepEqual": false,
+        "Uint8Array": false,
+        "Uint16Array": false,
+        "Uint32Array": false,
+        "Float32Array": false,
+        "ArrayBuffer": false
+    },
+    "rules": {
+        "quotes": ["error", "single", {}],
+        "comma-spacing": [
+            "error",
+            {
+                "before": false,
+                "after": true
+            }
+        ],
+        "space-infix-ops": [
+            "error",
+            {
+                "int32Hint": true
+            }
+        ],
+        "key-spacing": [
+            "error",
+            {
+                "beforeColon": false,
+                "afterColon": true,
+                "mode": "strict"
+            }
+        ],
+        "semi": ["error", "always"],
+        "no-trailing-spaces": "error",
+        "no-multi-spaces": "error",
+        "no-unexpected-multiline": "error",
+        "no-debugger": 0,
+        "no-unsafe-negation": "error",
+        "brace-style": [
+            "error",
+            "1tbs",
+            {
+                "allowSingleLine": true
+            }
+        ],
+        "object-property-newline": [
+            "error",
+            {
+                "allowMultiplePropertiesPerLine": true
+            }
+        ],
+        "keyword-spacing": [
+            "error",
+            {
+                "before": true,
+                "after": true
+            }
+        ],
+        "no-bitwise": 0,
+        "eqeqeq": [
+            "error",
+            "always",
+            {
+                "null": "ignore"
+            }
+        ],
+        "no-use-before-define": [
+            2,
+            {
+                "functions": false
+            }
+        ],
+        "eol-last": 2,
+        "new-cap": 0,
+        "no-caller": 2,
+        "no-undef": 2,
+        "no-unused-vars": 2,
+        "no-multi-str": 0,
+        "no-redeclare": ["error"],
+        "object-shorthand": ["error", "never"],
+        "comma-style": [2, "last"],
+        "dot-notation": 0,
+        "no-shadow": ["error"]
+        
+    }
+}
