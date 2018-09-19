@@ -9,100 +9,118 @@ var tokenExport = require('./tokenExport');
 var tokenExtend = require('./tokenExtend');
 
 var glslesPreprocessor = function(sourceCode, optionsParam) {
-  var options = optionsParam || {
-    defines: [],
-    extensions: [],
-    stylish: true,
-    whitespace: true,
-    tabs: 4,
-    pruneComments: true,
-    lint: true,
-    minify: true,
-    preprocess: true,
-    pruneUnused: true,
-    inline: true,
-    unroll: true,
-    optimize: true,
-    output: 2 // 0, nothing,    // 1, format    // 2, minify whitespace
-  };
+    var options = optionsParam || {
+        debugExperimental: false,
+        defines: [],
+        doStats: false,
+        extensions: [],
+        //inline: true,
+        pruneComments: true,
+        //lint: true,
+        logCounts: false,
+        minify: true,
+        preprocess: true,
+        profileTimeEach: false,
+        profileTimeGlobal: false,
+        pruneUnused: true,
+        pruneDefines: true,
+        replaceDefine: true,
+        optimize: true,
+        output: 1, // 0, nothing,    // 1, format    // 2, minify whitespace
+        //stylish: true,
+        tabs: 4,
+        //unroll: true,
+        whitespace: true
+    };
+    // consistency amongst params
+    if (!options.doStats && options.minify) options.doStats = true;
 
-  if (options.pruneComments) {
-    var tokensToStrip = {};
-    tokensToStrip[tokenID.BLOCK_COMMENT] = true;
-    tokensToStrip[tokenID.LINE_COMMENT] = true;
-    options.tokensToStrip = tokensToStrip;
-  }
-  var tokenizer = tokenize(options);
-  var id = 'GLSL tokenize';
-  console.time(id);
-  var tokens = tokenizer(sourceCode);
-  console.timeEnd(id);
+    //
+    var doTime = options.profileTimeEach;
+    var doLog = options.logCounts;
+    var id = 'GLSL preprocessor';
+    if (options.profileTimeGlobal) console.time(id);
 
-  var tokenIDMap = JSON.stringify(tokenID)
-    .replace(/"|{|}|:[0-9]+/g, '')
-    .toLowerCase()
-    .split(',');
-  tokenUtils.logStats(options.stats, tokenIDMap);
+    if (options.pruneComments) {
+        var tokensToStrip = {};
+        tokensToStrip[tokenID.BLOCK_COMMENT] = true;
+        tokensToStrip[tokenID.LINE_COMMENT] = true;
+        options.tokensToStrip = tokensToStrip;
+    }
+    var tokenizer = tokenize(options);
+    id = 'GLSL tokenize';
+    if (doTime) console.time(id);
+    var tokens = tokenizer(sourceCode);
+    if (doTime) console.timeEnd(id);
 
-  id = 'strip';
-  console.time(id);
-  tokenUtils.stripTokens(tokens, options.tokensToStrip);
-  console.timeEnd(id);
-  tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
+    if (doLog) {
+        var tokenIDMap = JSON.stringify(tokenID)
+            .replace(/"|{|}|:[0-9]+/g, '')
+            .toLowerCase()
+            .split(',');
+        tokenUtils.logStats(options.stats, tokenIDMap);
+    }
 
-  id = 'preprocess';
-  console.time(id);
-  //console.profile(id);
-  preprocessor(tokens, {
-    defines: [''],
-    pruneDefines: true,
-    replaceDefine: true
-  });
-  //console.profileEnd(id);
-  console.timeEnd(id);
-  tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
+    id = 'strip';
+    if (doTime) console.time(id);
+    tokenUtils.stripTokens(tokens, options.tokensToStrip);
+    if (doTime) console.timeEnd(id);
+    if (doLog) tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
 
-  // process
-  id = 'process depth scope';
-  console.time(id);
-  tokenExtend.getTokenDepth(tokens);
-  tokenExtend.getTokenScope(tokens);
-  console.timeEnd(id);
+    id = 'preprocess';
+    if (doTime) console.time(id);
+    preprocessor(tokens, {
+        defines: options.defines,
+        pruneDefines: options.pruneDefines,
+        replaceDefine: options.replaceDefines
+    });
+    if (doTime) console.timeEnd(id);
+    if (doLog) tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
+    /*
+    if (options.debugExperimental) {
+        // process
+        id = 'process depth scope';
+        if (doTime) console.time(id);
+        tokenExtend.getTokenDepth(tokens);
+        tokenExtend.getTokenScope(tokens);
+        if (doTime) console.timeEnd(id);
 
-  id = 'process var funcs';
-  console.time(id);
-  var functions = require('glsl-token-functions')(tokens);
-  var assigns = require('glsl-token-assignments')(tokens);
-  //var variables = getVariables(tokens, options);
-  console.timeEnd(id);
-  console.log(functions);
-  //console.log(variables);
-  console.log(assigns);
+        id = 'process var funcs';
+        if (doTime) console.time(id);
+        var functions = require('glsl-token-functions')(tokens);
+        var assigns = require('glsl-token-assignments')(tokens);
+        //var variables = getVariables(tokens, options);
+        if (doTime) console.timeEnd(id);
+        if (doLog) console.log(functions);
+        //if (doLog)console.log(variables);
+        if (doLog) console.log(assigns);
+    }
+  */
+    // optimize
+    if (options.pruneUnused) {
+        id = 'pruneUnused';
+        if (doTime) console.time(id);
+        // https://www.npmjs.com/package/glsl-token-function-shaker#shaketokens-options
+        shake(tokens, {});
+        if (doTime) console.timeEnd(id);
+        if (doLog) tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
+    }
 
-  // optimize
-  if (options.pruneUnused) {
-    id = 'pruneUnused';
-    console.time(id);
-    // https://www.npmjs.com/package/glsl-token-function-shaker#shaketokens-options
-    shake(tokens, {});
-    console.timeEnd(id);
-    tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
-  }
-  /*
+    if (options.minify) {
         id = 'minify';
-        console.time(id);
+        if (doTime) console.time(id);
         tokenExport.minify(tokens, options, tokenIDMap);
-        console.timeEnd(id);
+        if (doTime) console.timeEnd(id);
+        if (doLog) tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
+    }
 
-        tokenUtils.tokensRecountStats(tokens, tokenIDMap, options);
-    */
+    id = 'toString';
+    if (doTime) console.time(id);
+    var output = tokenExport.tokensToString(tokens, options.output, options);
+    if (doTime) console.timeEnd(id);
 
-  id = 'toString';
-  console.time(id);
-  var output = tokenExport.tokensToString(tokens, options.output, options);
-  console.timeEnd(id);
-
-  return output;
+    if (options.profileTimeGlobal) console.timeEnd('GLSL preprocessor');
+    return output;
 };
 
 module.exports = glslesPreprocessor;

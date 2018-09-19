@@ -5,7 +5,7 @@ var keywords = require('./tokenUtils').allKeywords;
 // 2- minify whitespace
 // 1- format
 // 0 - no change output
-var tokensToString = function (tokens, format, optionsParam) {
+var tokensToString = function(tokens, format, optionsParam) {
     var len = tokens.length;
 
     if (format === 0) {
@@ -17,7 +17,6 @@ var tokensToString = function (tokens, format, optionsParam) {
     }
     // remove unneeded white space
     if (format === 2) {
-
         var data;
         var t = tokens[0];
         var tNext = t;
@@ -50,7 +49,6 @@ var tokensToString = function (tokens, format, optionsParam) {
                 continue;
             }
             if (tPrev.id === tokenID.PREPROCESSOR) {
-
                 c = '\n';
                 st += c;
                 continue;
@@ -68,7 +66,6 @@ var tokensToString = function (tokens, format, optionsParam) {
                 st += c;
                 continue;
             }
-
         }
         return st;
     }
@@ -120,7 +117,7 @@ var tokensToString = function (tokens, format, optionsParam) {
         '>>': true,
         '<<': true,
         '||': true,
-        '&&': true,
+        '&&': true
     };
     var data;
     var t = tokens[0];
@@ -129,7 +126,6 @@ var tokensToString = function (tokens, format, optionsParam) {
     var lastLineEnd = true;
     var nextIsLineEnd = false;
     for (var currTokenIdx = 0; currTokenIdx < len; currTokenIdx++) {
-
         tPrev = t;
         t = tNext;
         tNext = currTokenIdx + 1 < len ? tokens[currTokenIdx + 1] : tokens[currTokenIdx];
@@ -141,7 +137,6 @@ var tokensToString = function (tokens, format, optionsParam) {
 
         switch (t.id) {
             case tokenID.WHITESPACE:
-
                 if (lastLineEnd) {
                     continue;
                 }
@@ -172,26 +167,22 @@ var tokensToString = function (tokens, format, optionsParam) {
                     case ')':
                     case ']':
                         lastLineEnd = false;
-                        if (tPrev.data[0] !== ' ')
-                            data = ' ' + data;
+                        if (tPrev.data[0] !== ' ') data = ' ' + data;
                         break;
                     case '[':
                     case ',':
                     case '(':
                         lastLineEnd = false;
-                        if (tNext.data[0] !== ' ')
-                            data = data + ' ';
+                        if (tNext.data[0] !== ' ') data = data + ' ';
                         break;
                     default:
                         lastLineEnd = false;
                         // no special rule, expand math operators
                         if (opMath[data]) {
                             // space around operators
-                            if (tPrev.data[0] !== ' ')
-                                data = ' ' + data;
+                            if (tPrev.data[0] !== ' ') data = ' ' + data;
 
-                            if (tNext.data[0] !== ' ')
-                                data = data + ' ';
+                            if (tNext.data[0] !== ' ') data = data + ' ';
                         }
                         break;
                 }
@@ -206,7 +197,8 @@ var tokensToString = function (tokens, format, optionsParam) {
 
         //  indent line start
         if (lastLineEnd && currTokenIdx > 0) {
-            data = '\n' + (t.depth <= 0 || t.id === tokenID.PREPROCESSOR ? '' : tabs[t.depth]) + data;
+            data =
+                '\n' + (t.depth <= 0 || t.id === tokenID.PREPROCESSOR ? '' : tabs[t.depth]) + data;
             lastLineEnd = false;
         }
 
@@ -220,8 +212,11 @@ function minify(tokens, opt, tokenIDMap) {
     keywords['main'] = true;
 
     var doneReplace = {};
-    var words = uniqVarName(keywords, opt.stats[tokenID.IDENT] + opt.stats[tokenID.KEYWORD]);
-    var numReplace = 0;;
+    var words = uniqVarName(
+        keywords,
+        opt.doStats && opt.stats[tokenID.IDENT] + opt.stats[tokenID.KEYWORD]
+    );
+    var numReplace = 0;
     var len = tokens.length;
     var addDefines = [];
     var t;
@@ -243,13 +238,11 @@ function minify(tokens, opt, tokenIDMap) {
     replaceList[tokenID.BUILTIN] = true;
 
     for (var currTokenIdx = realStart; currTokenIdx < len; currTokenIdx++) {
-
         t = tokens[currTokenIdx];
 
         if (t.minified) continue;
 
         if (replaceList[t.id]) {
-
             var preMin = t.data;
             var postMin = doneReplace[t.data] || words[numReplace++];
             doneReplace[preMin] = postMin;
@@ -289,7 +282,6 @@ function minify(tokens, opt, tokenIDMap) {
 
     tokens.splice.apply(tokens, [realStart, 0].concat(addDefines));
     delete keywords['main'];
-
 }
 module.exports = {
     minify: minify,

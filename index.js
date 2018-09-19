@@ -1,1 +1,1 @@
-require("./src/glslesPreprocessor");
+module.exports = require('./src/glslesPreprocessor');

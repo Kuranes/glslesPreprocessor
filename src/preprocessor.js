@@ -2,7 +2,7 @@ var tokenize = require('./tokenizer');
 var tokenID = require('./tokenId');
 var exprMathEval = require('./exprEval');
 
-'use strict';
+('use strict');
 
 //https://gcc.gnu.org/onlinedocs/cpp/Initial-processing.html#Initial-processing
 // comments => single space
@@ -58,13 +58,11 @@ tokensToStrip[tokenID.EOF] = true;
 var tokenizeOptionsDefine = { stripTokens: tokensToStrip };
 
 // TODO: on addDefine, tokenize define lie, replace value with current defines, on removeDefine recompute defines ?
-var preProcessShader = (function () {
-
+var preProcessShader = (function() {
     var ignoredDefines = ['GL_FRAGMENT_PRECISION_HIGH', 'DEBUG'];
 
     // remove unProcessed Code.
-    var preProcessor = function (tokens, opt) {
-
+    var preProcessor = function(tokens, opt) {
         if (!tokens || tokens.length === 0) return tokens;
 
         var options = opt || {
@@ -94,7 +92,7 @@ var preProcessShader = (function () {
         // what we'll do
         var pruneDefines = options.pruneDefines;
         var replaceDefine = options.replaceDefine !== undefined ? options.replaceDefine : true;
-        var prunesDefineStatement = true && pruneDefines;
+        var prunesDefineStatement = pruneDefines;
         // state var
         var foundIfDef, index, results, result, ignoreAndKeep;
 
@@ -108,7 +106,7 @@ var preProcessShader = (function () {
         // where are we in branching struct stack deepness
         var droppingDefineStackIndex = 0;
 
-        var definesReplaceMap = { 'true': 1, 'false': 0 };
+        var definesReplaceMap = { true: 1, false: 0 };
         var definesReplaceKeys;
         var definesReplaceMapDirty = false;
 
@@ -126,12 +124,12 @@ var preProcessShader = (function () {
         //  defined (_FLOATTEX) && defined(_PCF)
         //  defined(_NONE) ||  defined(_PCF)
         //  _NONE === 'aha'
-        var evalExpr = function (variables, variablesValues, line) {
+        var evalExpr = function(variables, variablesValues, line) {
             // resolve all "defined" first into 0,1
             while (1) {
                 var noSolve = true;
                 // if the ident is not defined, it's 0
-                line = line.replace(definedReg, function (searchValue, isNegative, define) {
+                line = line.replace(definedReg, function(searchValue, isNegative, define) {
                     noSolve = false;
                     var res = false;
                     if (ignoredDefines[define] !== undefined) res = true;
@@ -191,7 +189,7 @@ var preProcessShader = (function () {
                     mArgIdx++;
                     mArgs[mArgIdx] = '';
                     continue;
-                };
+                }
                 if (mToken.data[0] === '(') {
                     depthArgParens++;
                     mArgs[mArgIdx] += '(';
@@ -220,8 +218,14 @@ var preProcessShader = (function () {
             return idx ? idx - 1 : 0;
         }
 
-        function doDefineReplace(tokensOld, idx, replaced, toAdd, inExpressionForce, replacedStack) {
-
+        function doDefineReplace(
+            tokensOld,
+            idx,
+            replaced,
+            toAdd,
+            inExpressionForce,
+            replacedStack
+        ) {
             var replace = definesReplaceMap[toAdd];
 
             if (replace !== undefined && !replacedStack[toAdd]) {
@@ -282,11 +286,25 @@ var preProcessShader = (function () {
                     replacedStack = {};
                     idxReplacedStack = idx;
                 }
-                var res = doDefineReplace(tokensOld, idx, replaceResult, toAdd, inExpressionForce, replacedStack);
+                var res = doDefineReplace(
+                    tokensOld,
+                    idx,
+                    replaceResult,
+                    toAdd,
+                    inExpressionForce,
+                    replacedStack
+                );
                 var lastRes = res;
                 while (res === 1) {
                     lastRes = res;
-                    res = doDefineReplace(tokensOld, idx, replaceResult, replaceResult.replacedString, inExpressionForce, replacedStack);
+                    res = doDefineReplace(
+                        tokensOld,
+                        idx,
+                        replaceResult,
+                        replaceResult.replacedString,
+                        inExpressionForce,
+                        replacedStack
+                    );
                 }
                 if (replaceResult.replacedString !== undefined) {
                     defineTokens = tokenize(tokenizeOptionsDefine)(replaceResult.replacedString);
@@ -312,18 +330,19 @@ var preProcessShader = (function () {
                 replace = macrosReplaceMap[toAdd];
                 if (replace === undefined) {
                     if (macrosReplaceMapDirty) {
-
                         macrosReplaceKeys = Object.keys(macrosReplaceMap);
                         macrosReplaceMapDirty = false;
                     }
-                    for (defIdx = 0, lDefIdx = macrosReplaceKeys.length; defIdx < lDefIdx; defIdx++) {
-
+                    for (
+                        defIdx = 0, lDefIdx = macrosReplaceKeys.length;
+                        defIdx < lDefIdx;
+                        defIdx++
+                    ) {
                         key = macrosReplaceKeys[defIdx];
                         if (toAdd.indexOf(key) !== -1) {
                             replace = macrosReplaceMap[key];
                         }
                     }
-
                 }
                 // found it
                 if (replace !== undefined) {
@@ -334,7 +353,6 @@ var preProcessShader = (function () {
                 }
             }
 
-
             return idx;
         }
 
@@ -343,14 +361,11 @@ var preProcessShader = (function () {
             //https://www.opengl.org/wiki/Core_Language_(GLSL)#Extensions
             results = tokenStr.match(extensionReg);
             if (results !== null && results.length > 2) {
-
                 var extension = results[1];
                 var activation = results[2];
 
                 if (inputsDefines.indexOf(extension) === -1) {
-
                     switch (activation) {
-
                         case 'enable':
                         case 'require':
                         case 'warn':
@@ -378,11 +393,9 @@ var preProcessShader = (function () {
         function addDefine() {
             results = tokenStr.match(defineReg);
             if (results) {
-
                 var name = results[5];
                 var value = results[6];
                 if (name) {
-
                     //console.log('#define ' + name + ' = ' + value);
                     definesReplaceMap[name] = value;
                     definesReplaceMapDirty = true;
@@ -390,24 +403,22 @@ var preProcessShader = (function () {
                         inputsDefines.push(name);
                     }
                     // TODO: pre-tokenize defines and macro
-
-
                 } else {
                     // it's a macro
                     name = results[1];
                     var args = results[2].replace(/\s+/g, '').split(',');
-                    value = results[3];//.replace(/\s+/, '');
+                    value = results[3]; //.replace(/\s+/, '');
                     //console.log('#macro ' + name + ' (+' + args + '+) ' + value);
                     macrosReplaceMap[name] = { args: args, value: value };
                     macrosReplaceMapDirty = true;
                     // TODO: pre-tokenize defines and macro
-
                 }
 
                 // keep them in source always
                 // macros/values etc
-                // if (prunesDefineStatement )
-                // tokens.splice(currTokenIdx, 1);
+                if (prunesDefineStatement) {
+                    tokens.splice(currTokenIdx, 1);
+                }
                 return true;
             }
             return false;
@@ -415,7 +426,6 @@ var preProcessShader = (function () {
         function removeDefine() {
             results = tokenStr.match(undefReg);
             if (results !== null && results.length > 1) {
-
                 var defineToUndef = results[1];
 
                 var indexOfDefine = inputsDefines.indexOf(defineToUndef);
@@ -433,14 +443,8 @@ var preProcessShader = (function () {
                     macrosReplaceMapDirty = true;
                 }
 
-
-
-                // keep them in source always
-                // macros/values etc
-                // if (prunesDefineStatement )
-                // tokens.splice(currTokenIdx, 1);
+                if (prunesDefineStatement) tokens.splice(currTokenIdx, 1);
                 return true;
-
             }
             return false;
         }
@@ -449,7 +453,6 @@ var preProcessShader = (function () {
             // #ifdef _EVSM
             results = tokenStr.match(ifdefReg);
             if (results !== null && results.length >= 2) {
-
                 foundIfDef = results[1];
 
                 var indexIgnore = ignoreAndKeep ? 0 : ignoredDefines.indexOf(foundIfDef);
@@ -459,17 +462,13 @@ var preProcessShader = (function () {
                 index = inputsDefines.indexOf(foundIfDef);
                 droppingDefineStackIndex++;
                 if (index !== -1) {
-
                     droppingDefineStack.push(false);
                     didIncludeDefineStack.push(true);
                     parentDroppingStack.push(parentDroppingStack[droppingDefineStackIndex - 1]);
-
                 } else {
-
                     droppingDefineStack.push(true);
                     didIncludeDefineStack.push(false);
                     parentDroppingStack.push(true);
-
                 }
 
                 if (prunesDefineStatement && !ignoreDefineStack[droppingDefineStackIndex]) {
@@ -479,11 +478,11 @@ var preProcessShader = (function () {
             }
             return false;
         }
-        function doIfndef() {//////////
+        function doIfndef() {
+            //////////
             // #ifndef _dfd
             results = tokenStr.match(ifndefReg);
             if (results !== null && results.length >= 2) {
-
                 foundIfDef = results[1];
                 index = inputsDefines.indexOf(foundIfDef);
 
@@ -491,13 +490,10 @@ var preProcessShader = (function () {
                 droppingDefineStackIndex++;
 
                 if (index !== -1) {
-
                     droppingDefineStack.push(true);
                     didIncludeDefineStack.push(false);
                     parentDroppingStack.push(true);
-
                 } else {
-
                     droppingDefineStack.push(false);
                     didIncludeDefineStack.push(true);
                     parentDroppingStack.push(parentDroppingStack[droppingDefineStackIndex - 1]);
@@ -507,7 +503,6 @@ var preProcessShader = (function () {
                 }
 
                 return true;
-
             }
 
             return false;
@@ -515,7 +510,6 @@ var preProcessShader = (function () {
         function doElse() {
             results = tokenStr.search(elseReg);
             if (results !== -1) {
-
                 // was keeping, it's early out
                 if (didIncludeDefineStack[droppingDefineStackIndex]) {
                     droppingDefineStack[droppingDefineStackIndex] = true;
@@ -531,14 +525,14 @@ var preProcessShader = (function () {
                 // no previous include
                 droppingDefineStack[droppingDefineStackIndex] = false;
                 // didIncludeDefineStack[ droppingDefineStackIndex ] no need we're going out next
-                parentDroppingStack[droppingDefineStackIndex] = parentDroppingStack[droppingDefineStackIndex - 1];
+                parentDroppingStack[droppingDefineStackIndex] =
+                    parentDroppingStack[droppingDefineStackIndex - 1];
 
                 if (prunesDefineStatement && !ignoreDefineStack[droppingDefineStackIndex]) {
                     tokens.splice(currTokenIdx, 1);
                 }
 
                 return true;
-
             }
 
             return false;
@@ -561,16 +555,13 @@ var preProcessShader = (function () {
                     tokens.splice(currTokenIdx, 1);
                 }
                 return true;
-
             }
             return false;
         }
 
         function doElif() {
-
             results = tokenStr.search(elifReg);
             if (results !== -1) {
-
                 // was keeping before, it's a early out
                 if (didIncludeDefineStack[droppingDefineStackIndex]) {
                     droppingDefineStack[droppingDefineStackIndex] = true;
@@ -587,7 +578,8 @@ var preProcessShader = (function () {
                 if (result) {
                     droppingDefineStack[droppingDefineStackIndex] = false;
                     didIncludeDefineStack[droppingDefineStackIndex] = true;
-                    parentDroppingStack[droppingDefineStackIndex] = parentDroppingStack[droppingDefineStackIndex - 1];
+                    parentDroppingStack[droppingDefineStackIndex] =
+                        parentDroppingStack[droppingDefineStackIndex - 1];
                 }
 
                 if (prunesDefineStatement && !ignoreAndKeep) {
@@ -597,11 +589,11 @@ var preProcessShader = (function () {
             }
             return false;
         }
-        function doEndif() {//////////
+        function doEndif() {
+            //////////
             // check for endif
             results = tokenStr.search(endifReg);
             if (results !== -1) {
-
                 ignoreDefineStack.pop();
                 droppingDefineStack.pop();
                 didIncludeDefineStack.pop();
@@ -612,14 +604,12 @@ var preProcessShader = (function () {
                     tokens.splice(currTokenIdx, 1);
                 }
                 return true; // remove endif
-
             }
             return false;
         }
 
         // Let'start, get A move on !
         for (currTokenIdx = 0; currTokenIdx < tokens.length; currTokenIdx++) {
-
             token = tokens[currTokenIdx];
             tokenStr = token.data;
             ignoreAndKeep = ignoreDefineStack[droppingDefineStackIndex];
@@ -650,12 +640,19 @@ var preProcessShader = (function () {
             //debugger // eslint-disable-line
 
             // replace in identifier that we do keep
-            if (ignoreAndKeep
-                ||
-                (!droppingDefineStack[droppingDefineStackIndex]
-                    && !parentDroppingStack[droppingDefineStackIndex])) {
+            if (
+                ignoreAndKeep ||
+                (!droppingDefineStack[droppingDefineStackIndex] &&
+                    !parentDroppingStack[droppingDefineStackIndex])
+            ) {
                 if (token.id === tokenID.IDENT) {
-                    if (replaceDefine && (definesReplaceKeys || definesReplaceMapDirty || macrosReplaceKeys || macrosReplaceMapDirty)) {
+                    if (
+                        replaceDefine &&
+                        (definesReplaceKeys ||
+                            definesReplaceMapDirty ||
+                            macrosReplaceKeys ||
+                            macrosReplaceMapDirty)
+                    ) {
                         // token or ident only ?
                         currTokenIdx = defineReplace(tokens, currTokenIdx, token.data);
                     }
@@ -667,7 +664,6 @@ var preProcessShader = (function () {
         }
 
         return tokens;
-
     };
 
     return preProcessor;
